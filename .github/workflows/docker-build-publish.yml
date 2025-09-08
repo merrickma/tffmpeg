@@ -53,14 +53,14 @@ jobs:
         with:
           context: .
           load: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: test-image:latest
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: 测试镜像
         run: |
-          docker run --rm ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} bash -c "echo '镜像测试成功'"
+          docker run --rm test-image:latest bash -c "echo '镜像测试成功'"
 
       - name: 构建并推送Docker镜像
         if: github.event_name != 'pull_request'
