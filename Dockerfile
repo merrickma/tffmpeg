@@ -4,7 +4,7 @@ FROM node:22-slim
 # 设置工作目录
 WORKDIR /app
 
-# 安装系统依赖
+# 安装系统依赖和工具
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     fonts-liberation \
@@ -48,43 +48,25 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-color-emoji \
     build-essential \
     libvips-dev \
-    wget \
-    pkg-config \
-    yasm \
-    cmake \
-    unzip \
-    git \
-    nasm \
-    libx264-dev \
-    libx265-dev \
-    libnuma-dev \
-    libvpx-dev \
-    libfdk-aac-dev \
-    libmp3lame-dev \
-    libopus-dev \
+    software-properties-common \
+    curl \
+    gnupg \
     || apt-get install -y --fix-missing \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 编译安装FFmpeg 6.x
-RUN cd /tmp && \
-    wget -O ffmpeg-6.1.1.tar.bz2 https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.bz2 && \
-    tar xjf ffmpeg-6.1.1.tar.bz2 && \
-    cd ffmpeg-6.1.1 && \
-    ./configure \
-    --enable-gpl \
-    --enable-nonfree \
-    --enable-libfdk-aac \
-    --enable-libmp3lame \
-    --enable-libopus \
-    --enable-libvpx \
-    --enable-libx264 \
-    --enable-libx265 && \
-    make -j$(nproc) && \
-    make install && \
-    ldconfig && \
-    cd /tmp && \
-    rm -rf ffmpeg-6.1.1 ffmpeg-6.1.1.tar.bz2
+# 安装FFmpeg 6.x
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gpg-agent && \
+    curl -fsSL https://apt.fury.io/jonathonf/gpg.key | gpg --dearmor -o /usr/share/keyrings/jonathonf-ppa-archive-keyring.gpg && \
+    echo "deb [signed-by=/usr/share/keyrings/jonathonf-ppa-archive-keyring.gpg] https://apt.fury.io/jonathonf/ focal main" > /etc/apt/sources.list.d/jonathonf-ffmpeg-6-focal.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends ffmpeg && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# 验证FFmpeg版本
+RUN ffmpeg -version | grep "ffmpeg version"
 
 # 设置Puppeteer环境变量
 ENV PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox
