@@ -55,18 +55,21 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# 安装FFmpeg 6.x
+# 下载并安装FFmpeg 6.x静态构建版本
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends gpg-agent && \
-    curl -fsSL https://apt.fury.io/jonathonf/gpg.key | gpg --dearmor -o /usr/share/keyrings/jonathonf-ppa-archive-keyring.gpg && \
-    echo "deb [signed-by=/usr/share/keyrings/jonathonf-ppa-archive-keyring.gpg] https://apt.fury.io/jonathonf/ focal main" > /etc/apt/sources.list.d/jonathonf-ffmpeg-6-focal.list && \
-    apt-get update && \
-    apt-get install -y --no-install-recommends ffmpeg && \
+    apt-get install -y --no-install-recommends wget xz-utils && \
+    cd /tmp && \
+    wget https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+    mkdir -p ffmpeg && \
+    tar -xf ffmpeg-release-amd64-static.tar.xz -C ffmpeg --strip-components=1 && \
+    cp ffmpeg/ffmpeg ffmpeg/ffprobe /usr/local/bin/ && \
+    chmod +x /usr/local/bin/ffmpeg /usr/local/bin/ffprobe && \
+    rm -rf /tmp/ffmpeg* && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # 验证FFmpeg版本
-RUN ffmpeg -version | grep "ffmpeg version"
+RUN ffmpeg -version | head -n 1
 
 # 设置Puppeteer环境变量
 ENV PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox
