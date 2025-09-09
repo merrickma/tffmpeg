@@ -46,12 +46,45 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xdg-utils \
     xauth \
     fonts-noto-color-emoji \
-    ffmpeg \
     build-essential \
     libvips-dev \
+    wget \
+    pkg-config \
+    yasm \
+    cmake \
+    unzip \
+    git \
+    nasm \
+    libx264-dev \
+    libx265-dev \
+    libnuma-dev \
+    libvpx-dev \
+    libfdk-aac-dev \
+    libmp3lame-dev \
+    libopus-dev \
     || apt-get install -y --fix-missing \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# 编译安装FFmpeg 6.x
+RUN cd /tmp && \
+    wget -O ffmpeg-6.1.1.tar.bz2 https://ffmpeg.org/releases/ffmpeg-6.1.1.tar.bz2 && \
+    tar xjf ffmpeg-6.1.1.tar.bz2 && \
+    cd ffmpeg-6.1.1 && \
+    ./configure \
+    --enable-gpl \
+    --enable-nonfree \
+    --enable-libfdk-aac \
+    --enable-libmp3lame \
+    --enable-libopus \
+    --enable-libvpx \
+    --enable-libx264 \
+    --enable-libx265 && \
+    make -j$(nproc) && \
+    make install && \
+    ldconfig && \
+    cd /tmp && \
+    rm -rf ffmpeg-6.1.1 ffmpeg-6.1.1.tar.bz2
 
 # 设置Puppeteer环境变量
 ENV PUPPETEER_ARGS=--no-sandbox,--disable-setuid-sandbox
